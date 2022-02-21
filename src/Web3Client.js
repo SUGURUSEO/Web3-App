@@ -4,6 +4,10 @@ import NFTContractBuild from 'contracts/NFT.json';
 
 let selectedAccount;
 
+let nftContract;
+
+let isInitialized = false;
+
 export const init = async () => {
     let provider = window.ethereum;
 
@@ -18,6 +22,7 @@ export const init = async () => {
       })
       .catch(err => {
         console.log(err);
+        return;
       })
 
       window.ethereum.on('accountsChanged', function (accounts) {
@@ -30,8 +35,19 @@ export const init = async () => {
 
     const networkId = await web3.eth.net.getId();
 
-    const nftContract = new web3.eth.Contract(
+    nftContract = new web3.eth.Contract(
         NFTContractBuild.abi,
         NFTContractBuild.networks[networkId].address
     );
+
+    isInitialized = true;
 };
+
+export const mintToken = async () => {
+    if (!isInitialized) {
+        await init();
+    }
+    return nftContract.methods
+    .mint(selectedAccount)
+    .send({from: selectedAccount});
+}
